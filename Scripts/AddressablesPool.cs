@@ -10,11 +10,23 @@ namespace GeoTetra.GTPooling
     public class AddressablesPool : MonoBehaviour
     {
         [SerializeField] private int _retainedInstanceLimit = 32;
+        
+        /// <summary>
+        /// Stores released object by primary key to be quickly looked up.
+        /// </summary>
         private Dictionary<string, List<PoolObject>>  _releasedObjects = new Dictionary<string, List<PoolObject>>();
+        
+        /// <summary>
+        /// Stores released object in a list sorted by most recently released. So then the last released can be found.
+        /// </summary>
         private List<PoolObject> _releasedObjectList = new List<PoolObject>();
+        
+        /// <summary>
+        /// Object currently in use.
+        /// </summary>
         private Dictionary<GameObject, PoolObject>  _usedObjects = new Dictionary<GameObject, PoolObject>();
 
-        public class PoolObject
+        private class PoolObject
         {
             public readonly AsyncOperationHandle<GameObject> Handle;
             public readonly IResourceLocation Location;
@@ -32,9 +44,6 @@ namespace GeoTetra.GTPooling
             
         public async Task<GameObject> PoolInstantiateAsync(AssetReference reference)
         {
-#if UNITY_EDITOR
-            Debug.Log("PoolInstantiateAsync " + reference.editorAsset + "  " + reference.RuntimeKey);
-#endif
             var handle = await InstantiateAsync(reference.RuntimeKey);
             return handle.Handle.Result;
         }
@@ -57,7 +66,7 @@ namespace GeoTetra.GTPooling
             IResourceLocation location = GetResourceLocation(key);
             PoolObject poolObject;
             
-            //If location is initially null, means the internal ResourceManager has no alloced, so instantiate
+            //If location is initially null, means the internal ResourceManager has not alloced, so instantiate
             //by string key to trigger that.
             if (location == null)
             {
