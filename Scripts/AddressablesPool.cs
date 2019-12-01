@@ -12,17 +12,17 @@ namespace GeoTetra.GTPooling
         [SerializeField] private int _retainedInstanceLimit = 32;
         
         /// <summary>
-        /// Stores released object by primary key to be quickly looked up.
+        /// Stores released objects by primary key to be quickly looked up.
         /// </summary>
         private Dictionary<string, List<PoolObject>>  _releasedObjects = new Dictionary<string, List<PoolObject>>();
         
         /// <summary>
-        /// Stores released object in a list sorted by most recently released. So then the last released can be found.
+        /// Stores released objects in a list sorted by most recently released. So then the last released can be found.
         /// </summary>
         private List<PoolObject> _releasedObjectList = new List<PoolObject>();
         
         /// <summary>
-        /// Object currently in use.
+        /// Objects currently in use.
         /// </summary>
         private Dictionary<GameObject, PoolObject>  _usedObjects = new Dictionary<GameObject, PoolObject>();
 
