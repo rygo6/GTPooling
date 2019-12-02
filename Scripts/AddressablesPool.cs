@@ -63,7 +63,7 @@ namespace GeoTetra.GTPooling
 
         private async Task<PoolObject> InstantiateAsync(object key)
         {
-            IResourceLocation location = GetResourceLocation(key);
+            IResourceLocation location = AddressablesPoolUtility.GetGameObjectResourceLocation<GameObject>(key);
             PoolObject poolObject;
             
             //If location is initially null, means the internal ResourceManager has not alloced, so instantiate
@@ -72,7 +72,7 @@ namespace GeoTetra.GTPooling
             {
                 AsyncOperationHandle<GameObject> handle = Addressables.InstantiateAsync(key, trackHandle: false);
                 await handle.Task;
-                location = GetResourceLocation(key);
+                location = AddressablesPoolUtility.GetGameObjectResourceLocation<GameObject>(key);
                 poolObject = AddNewUsedObject(handle.Result, handle, location);
                 return poolObject;
             }
@@ -149,26 +149,6 @@ namespace GeoTetra.GTPooling
                     releasingPoolList.Remove(releasingPoolObject);
                 }
             }
-        }
-        
-        private IResourceLocation GetResourceLocation(object key)
-        {
-            key = EvaluateKey(key);
-            IList<IResourceLocation> locs;
-            foreach (var rl in Addressables.ResourceLocators)
-            {
-                if (rl.Locate(key, typeof(GameObject), out locs))
-                    return locs[0];
-            }
-
-            return null;
-        }
-        
-        private object EvaluateKey(object obj)
-        {
-            if (obj is IKeyEvaluator)
-                return (obj as IKeyEvaluator).RuntimeKey;
-            return obj;
         }
     }
 }
