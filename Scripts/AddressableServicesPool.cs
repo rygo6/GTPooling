@@ -62,6 +62,13 @@ namespace GeoTetra.GTPooling
         public void PrePooledPopulate<T>(AssetReference reference, out T output) where T : ScriptableObject
         {
             IResourceLocation location = AddressablesPoolUtility.GetGameObjectResourceLocation<ScriptableObject>(reference.RuntimeKey);
+            if (location == null)
+            {
+                Debug.LogError("Reference not set " + reference.ToString());
+                output = null;
+                return;
+            }
+            
             if (_pooledServices.TryGetValue(location.PrimaryKey, out ScriptableObject pooledService))
             {
                 output = (T) pooledService;
