@@ -44,39 +44,52 @@ namespace GeoTetra.GTPooling
             _prePoolingComplete.Invoke();
         }
         
-        public T PrePooledPopulate<T>(out T output) where T : ScriptableObject
+        public T PrePooledPopulate<T>() where T : ScriptableObject
         {
-            if (_pooledServices.TryGetValue(typeof(T).ToString(), out ScriptableObject pooledService))
+            IResourceLocation location = AddressablesPoolUtility.GetGameObjectResourceLocation<ScriptableObject>(typeof(T).ToString());
+            if (location == null)
             {
-                output = (T) pooledService;
-                return (T) pooledService;
-            }
-            else
-            {
-                Debug.LogWarning($"MultiUser Pooled Reference not found {typeof(T)}");
-                output = null;
+                Debug.LogError("Reference not set " + typeof(T));
                 return null;
             }
+
+            return PrePooledPopulate<T>(location);
+        }
+        
+        public T PrePooledPopulate<T>(string key) where T : ScriptableObject
+        {
+            IResourceLocation location = AddressablesPoolUtility.GetGameObjectResourceLocation<ScriptableObject>(key);
+            if (location == null)
+            {
+                Debug.LogError("Reference not set " + key.ToString());
+                return null;
+            }
+
+            return PrePooledPopulate<T>(location);
         }
 
-        public void PrePooledPopulate<T>(AssetReference reference, out T output) where T : ScriptableObject
+        public T PrePooledPopulate<T>(AssetReference reference) where T : ScriptableObject
         {
             IResourceLocation location = AddressablesPoolUtility.GetGameObjectResourceLocation<ScriptableObject>(reference.RuntimeKey);
             if (location == null)
             {
                 Debug.LogError("Reference not set " + reference.ToString());
-                output = null;
-                return;
+                return null;
             }
             
+            return PrePooledPopulate<T>(location);         
+        }
+        
+        private T PrePooledPopulate<T>(IResourceLocation location) where T : ScriptableObject
+        {
             if (_pooledServices.TryGetValue(location.PrimaryKey, out ScriptableObject pooledService))
             {
-                output = (T) pooledService;
+                return (T) pooledService;
             }
             else
             {
                 Debug.LogWarning($"MultiUser Pooled Reference not found {location.PrimaryKey}");
-                output = null;
+                return null;
             }
         }
         
