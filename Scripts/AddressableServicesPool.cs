@@ -46,7 +46,7 @@ namespace GeoTetra.GTPooling
         
         public T PrePooledPopulate<T>() where T : ScriptableObject
         {
-            IResourceLocation location = AddressablesPoolUtility.GetGameObjectResourceLocation<ScriptableObject>(typeof(T).ToString());
+            IResourceLocation location = AddressablesPoolUtility.GetGameObjectResourceLocation<ScriptableObject>(typeof(T).Name);
             if (location == null)
             {
                 Debug.LogError("Reference not set " + typeof(T));
