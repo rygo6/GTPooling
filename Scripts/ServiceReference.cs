@@ -5,8 +5,10 @@ using UnityEngine.AddressableAssets;
 namespace GeoTetra.GTPooling
 {
     [Serializable]
-    public class ServiceReference : AssetReference
+    public class ServiceReference : AssetReferenceT<ScriptableObject>
     {
+        public ServiceReference(string guid) : base(guid) { }        
+        
         protected ScriptableObject _service;
 
         public virtual void LoadServiceFromPool()
