@@ -6,11 +6,11 @@ namespace GeoTetra.GTPooling
     [System.Serializable]
     public class ServiceReference : AssetReferenceT<ScriptableObject>
     {
-        public ServiceReference(string guid) : base(guid) { }        
-        
-        protected ScriptableObject _service;
+        public ServiceReference(string guid) : base(guid) { }
 
-        public virtual void LoadServiceFromPool()
+        private ScriptableObject _service;
+
+        protected virtual void LoadServiceFromPool()
         {
             _service = AddressableServicesPool.GlobalPool.PrePooledPopulate<ScriptableObject>(this);
             if (_service == null)
