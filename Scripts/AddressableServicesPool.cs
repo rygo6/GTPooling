@@ -1,18 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using GeoTetra.GTCommon.Attributes;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Events;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
-using UnityEngine.Serialization;
 
 namespace GeoTetra.GTPooling
 {
+    /// <summary>
+    /// This Pool holds references Service ScriptableObjects.
+    /// </summary>
     public class AddressableServicesPool : MonoBehaviour
     {
+        [ScenePath]
+        [SerializeField] private string _path;
         [SerializeField] private bool _isGlobalPool;
         [SerializeField] List<AssetReference> _prePoolReferences = new List<AssetReference>();
         [SerializeField] private UnityEvent _prePoolingComplete;
@@ -43,7 +46,7 @@ namespace GeoTetra.GTPooling
             }
             _prePoolingComplete.Invoke();
         }
-        
+
         public T PrePooledPopulate<T>() where T : ScriptableObject
         {
             IResourceLocation location = AddressablesPoolUtility.GetGameObjectResourceLocation<ScriptableObject>(typeof(T).Name);
