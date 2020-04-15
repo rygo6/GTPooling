@@ -14,8 +14,6 @@ namespace GeoTetra.GTPooling
     /// </summary>
     public class AddressableServicesPool : MonoBehaviour
     {
-        [ScenePath]
-        [SerializeField] private string _path;
         [SerializeField] private bool _isGlobalPool;
         [SerializeField] List<AssetReference> _prePoolReferences = new List<AssetReference>();
         [SerializeField] private UnityEvent _prePoolingComplete;

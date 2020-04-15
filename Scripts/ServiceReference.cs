@@ -1,12 +1,21 @@
-﻿using UnityEngine;
+﻿using System;
+using Amazon.S3.Model;
+using UnityEditor;
+using UnityEngine;
 using UnityEngine.AddressableAssets;
 
 namespace GeoTetra.GTPooling
 {
+    [Obsolete("Use ServiceReferenceT")]
     [System.Serializable]
     public class ServiceReference : AssetReferenceT<ScriptableObject>
     {
         public ServiceReference(string guid) : base(guid) { }
+
+        internal ServiceReference(ScriptableObject service) : base(string.Empty)
+        {
+            _service = service;
+        }
 
         private ScriptableObject _service;
 
@@ -18,11 +27,16 @@ namespace GeoTetra.GTPooling
                 Debug.LogWarning($"{this.ToString()} Cannot find reference");
             }
         }
-        
+
         public T Service<T>() where T : ScriptableObject
         {
             if (_service == null) LoadServiceFromPool();
             return (T) _service;
+        }
+
+        internal void SetService(ScriptableObject service)
+        {
+            _service = service;
         }
     }
     
@@ -40,6 +54,7 @@ namespace GeoTetra.GTPooling
                 if (_service == null) LoadServiceFromPool();
                 return _service;
             }
+            internal set => _service = value;
         }
 
         private void LoadServiceFromPool()
