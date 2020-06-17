@@ -10,17 +10,21 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 namespace GeoTetra.GTPooling
 {
     /// <summary>
-    /// This Pool holds references Service ScriptableObjects.
+    /// This Pool holds references ServiceBehaviours.
     /// </summary>
     public class AddressableServicesPool : MonoBehaviour
     {
         [SerializeField] private bool _isGlobalPool;
-        [SerializeField] List<AssetReference> _prePoolReferences = new List<AssetReference>();
+        
+        [SerializeField] 
+        [AssetReferenceUILabelRestriction("Service")]
+        List<AssetReference> _prePoolReferences = new List<AssetReference>();
+        
         [SerializeField] private UnityEvent _prePoolingComplete;
 
         public static AddressableServicesPool GlobalPool;
-        
-        private Dictionary<string, ScriptableObject>  _pooledServices = new Dictionary<string, ScriptableObject>();
+
+        private Dictionary<string, ServiceBehaviour>  _pooledServices = new Dictionary<string, ServiceBehaviour>();
 
         private void Awake()
         {
@@ -40,14 +44,14 @@ namespace GeoTetra.GTPooling
         {
             for (int i = 0; i < _prePoolReferences.Count; ++i)
             {
-               await LoadAsync(_prePoolReferences[i]);
+               await LoadServiceAsync(_prePoolReferences[i]);
             }
             _prePoolingComplete.Invoke();
         }
 
-        public T PrePooledPopulate<T>() where T : ScriptableObject
+        public T PrePooledPopulate<T>() where T : ServiceBehaviour
         {
-            IResourceLocation location = AddressablesPoolUtility.GetGameObjectResourceLocation<ScriptableObject>(typeof(T).Name);
+            IResourceLocation location = AddressablesPoolUtility.GetResourceLocation<GameObject>(typeof(T).Name);
             if (location == null)
             {
                 Debug.LogError("Reference not set " + typeof(T));
@@ -57,33 +61,31 @@ namespace GeoTetra.GTPooling
             return PrePooledPopulate<T>(location);
         }
         
-        public T PrePooledPopulate<T>(string key) where T : ScriptableObject
+        public T PrePooledPopulate<T>(string key) where T : ServiceBehaviour
         {
-            IResourceLocation location = AddressablesPoolUtility.GetGameObjectResourceLocation<ScriptableObject>(key);
+            IResourceLocation location = AddressablesPoolUtility.GetResourceLocation<GameObject>(key);
             if (location == null)
             {
-                Debug.LogError("Reference not set " + key.ToString());
-                return null;
+                return PrePooledPopulate<T>();
             }
 
             return PrePooledPopulate<T>(location);
         }
 
-        public T PrePooledPopulate<T>(AssetReference reference) where T : ScriptableObject
+        public T PrePooledPopulate<T>(AssetReference reference) where T : ServiceBehaviour
         {
-            IResourceLocation location = AddressablesPoolUtility.GetGameObjectResourceLocation<ScriptableObject>(reference.RuntimeKey);
+            IResourceLocation location = AddressablesPoolUtility.GetResourceLocation<GameObject>(reference.RuntimeKey);
             if (location == null)
             {
-                Debug.LogError("Reference not set " + reference.ToString());
-                return null;
+                return PrePooledPopulate<T>();
             }
             
             return PrePooledPopulate<T>(location);         
         }
         
-        private T PrePooledPopulate<T>(IResourceLocation location) where T : ScriptableObject
+        private T PrePooledPopulate<T>(IResourceLocation location) where T : ServiceBehaviour
         {
-            if (_pooledServices.TryGetValue(location.PrimaryKey, out ScriptableObject pooledService))
+            if (_pooledServices.TryGetValue(location.PrimaryKey, out ServiceBehaviour pooledService))
             {
                 return (T) pooledService;
             }
@@ -94,35 +96,56 @@ namespace GeoTetra.GTPooling
             }
         }
         
-        private async Task LoadAsync(AssetReference reference)
+        private async Task LoadServiceAsync(AssetReference reference)
         {
-            IResourceLocation location = AddressablesPoolUtility.GetGameObjectResourceLocation<ScriptableObject>(reference.RuntimeKey);
+            IResourceLocation location = AddressablesPoolUtility.GetResourceLocation<GameObject>(reference.RuntimeKey);
 
             //If location is initially null, means the internal ResourceManager has not alloced, so instantiate
             //by string key to trigger that.
             if (location == null)
             {
-                AsyncOperationHandle<ScriptableObject> handle = Addressables.LoadAssetAsync<ScriptableObject>(reference.RuntimeKey);
+                AsyncOperationHandle<GameObject> handle = Addressables.InstantiateAsync(reference.RuntimeKey, Vector3.zero, Quaternion.identity, transform);
                 await handle.Task;
-                location = AddressablesPoolUtility.GetGameObjectResourceLocation<ScriptableObject>(reference.RuntimeKey);
-                Debug.Log($"Adding Service {location.PrimaryKey}");
-                _pooledServices.Add(location.PrimaryKey, handle.Result);
+                location = AddressablesPoolUtility.GetResourceLocation<GameObject>(reference.RuntimeKey);
+                AddServiceToPool(location, handle, reference);
                 return;
             }
             
-            ScriptableObject scriptableObject = RetrieveObject(location.PrimaryKey);
-            if (scriptableObject == null)
+            ServiceBehaviour service = RetrieveObject(location.PrimaryKey);
+            if (service == null)
             {
-                AsyncOperationHandle<ScriptableObject> handle = Addressables.LoadAssetAsync<ScriptableObject>(location);
+                AsyncOperationHandle<GameObject> handle = Addressables.InstantiateAsync(location, Vector3.zero, Quaternion.identity, transform);
                 await handle.Task;
-                Debug.Log($"Adding Service {location.PrimaryKey}");
-                _pooledServices.Add(location.PrimaryKey, handle.Result);
+                AddServiceToPool(location, handle, reference);
             }
         }
 
-        private ScriptableObject RetrieveObject(string primaryKey)
+        private void AddServiceToPool(IResourceLocation location, AsyncOperationHandle<GameObject> handle, AssetReference reference)
         {
-            return _pooledServices.TryGetValue(primaryKey, out ScriptableObject scriptableObject) ? scriptableObject : null;
+            _serviceBehavioursRecyclable.Clear();
+            handle.Result.GetComponents(_serviceBehavioursRecyclable);
+            
+            #if UNITY_EDITOR
+            if (_serviceBehavioursRecyclable.Count > 1)
+            {
+                Debug.LogWarning($"Service {reference.editorAsset.name} has too many ServiceBehaviours on it, should only be one.");
+                return;
+            }
+            if (_serviceBehavioursRecyclable.Count == 0)
+            {
+                Debug.LogWarning($"Service {reference.editorAsset.name} has too many ServiceBehaviours on it, should only be one.");
+                return;
+            }
+            #endif
+            
+            _pooledServices.Add(location.PrimaryKey, _serviceBehavioursRecyclable[0]);
+        }
+
+        private List<ServiceBehaviour> _serviceBehavioursRecyclable = new List<ServiceBehaviour>();
+        
+        private ServiceBehaviour RetrieveObject(string primaryKey)
+        {
+            return _pooledServices.TryGetValue(primaryKey, out ServiceBehaviour service) ? service : null;
         }
     }
 }

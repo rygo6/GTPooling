@@ -9,7 +9,7 @@ namespace GeoTetra.GTPooling
 {
     public static class AddressablesPoolUtility
     {
-        public static IResourceLocation GetGameObjectResourceLocation<T>(object key)
+        public static IResourceLocation GetResourceLocation<T>(object key)
         {
             key = EvaluateKey(key);
             IList<IResourceLocation> locs;

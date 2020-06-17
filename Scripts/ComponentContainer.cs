@@ -15,8 +15,7 @@ namespace GeoTetra.GTPooling
         { }
     }
     
-    [CreateAssetMenu(menuName = "GeoTetra/Services/ComponentContainer")]
-    public class ComponentContainer : ScriptableObject
+    public class ComponentContainer : ServiceBehaviour
     {
 #if UNITY_EDITOR
         [Multiline] 

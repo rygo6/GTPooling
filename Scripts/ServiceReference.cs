@@ -8,40 +8,42 @@ namespace GeoTetra.GTPooling
 {
     [Obsolete("Use ServiceReferenceT")]
     [System.Serializable]
-    public class ServiceReference : AssetReferenceT<ScriptableObject>
+    public class ServiceReference : AssetReferenceT<GameObject>
     {
         public ServiceReference(string guid) : base(guid) { }
 
-        internal ServiceReference(ScriptableObject service) : base(string.Empty)
+        internal ServiceReference(ServiceBehaviour service) : base(string.Empty)
         {
             _service = service;
         }
 
-        private ScriptableObject _service;
+        private ServiceBehaviour _service;
 
         protected virtual void LoadServiceFromPool()
         {
-            _service = AddressableServicesPool.GlobalPool.PrePooledPopulate<ScriptableObject>(this);
+            _service = string.IsNullOrEmpty(AssetGUID) ? 
+                AddressableServicesPool.GlobalPool.PrePooledPopulate<ServiceBehaviour>() : 
+                AddressableServicesPool.GlobalPool.PrePooledPopulate<ServiceBehaviour>(this);
             if (_service == null)
             {
                 Debug.LogWarning($"{this.ToString()} Cannot find reference");
             }
         }
 
-        public T Service<T>() where T : ScriptableObject
+        public T Service<T>() where T : ServiceBehaviour
         {
             if (_service == null) LoadServiceFromPool();
             return (T) _service;
         }
 
-        internal void SetService(ScriptableObject service)
+        internal void SetService(ServiceBehaviour service)
         {
             _service = service;
         }
     }
     
     [System.Serializable]
-    public class ServiceReferenceT<ServiceType> : AssetReferenceT<ServiceType> where ServiceType : ScriptableObject
+    public class ServiceReferenceT<ServiceType> : AssetReferenceT<GameObject> where ServiceType : ServiceBehaviour
     {
         public ServiceReferenceT(string guid) : base(guid) { }
 
