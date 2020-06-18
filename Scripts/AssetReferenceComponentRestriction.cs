@@ -1,7 +1,5 @@
 ﻿using System;
-using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 /// <summary>
 /// Used to restrict an AssetReference field or property to only allow items wil specific labels.  This is only enforced through the UI.
