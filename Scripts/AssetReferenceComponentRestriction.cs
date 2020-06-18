@@ -11,19 +11,10 @@ public sealed class AssetReferenceComponentRestriction : AssetReferenceUIRestric
 {
     private Type _componentType;
     
+    public Type ComponentType => _componentType;
+    
     public AssetReferenceComponentRestriction(Type componentType)
     {
         _componentType = componentType;
-    }
-    
-    public override bool ValidateAsset(Object obj)
-    {
-        var path = AssetDatabase.GetAssetOrScenePath(obj);
-        return ValidateAsset(path);
-    }
-    
-    public override bool ValidateAsset(string path)
-    {
-        return AssetDatabase.LoadAssetAtPath(path, _componentType) != null;
     }
 }

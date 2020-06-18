@@ -21,7 +21,7 @@ public class AssetReferenceComponentRestrictionSurrogate : AssetReferenceUIRestr
 
     public override bool ValidateAsset(string path)
     {
-        return data.ValidateAsset(path);;
+        return AssetDatabase.LoadAssetAtPath(path, data.ComponentType) != null;
     }
     
     public override string ToString()
