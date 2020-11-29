@@ -103,7 +103,7 @@ namespace GeoTetra.GTPooling
                 IResourceLocation location = AddressablesPoolUtility.GetResourceLocation<ServiceObjectType>(typeof(ServiceObjectType).Name);
                 if (location != null)
                 {
-                    Debug.Log("No ServiceObjectReference specified, loading default service by name of type for " + typeof(ServiceObjectType).Name);
+                    // Debug.Log("No ServiceObjectReference specified, loading default service by name of type for " + typeof(ServiceObjectType).Name);
                 }
                 else
                 {
@@ -115,6 +115,8 @@ namespace GeoTetra.GTPooling
             {
                 _service = await LoadAssetAsync<ServiceObjectType>().Task;
             }
+
+            await _service.Initialization;
         }
     }
 }

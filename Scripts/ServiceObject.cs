@@ -8,6 +8,8 @@ namespace GeoTetra.GTPooling
 {
     public abstract class ServiceObject : ScriptableObject
     {
+        public Task Initialization { get; private set; }
+        
         protected abstract Task OnServiceAwake();
         protected abstract void OnServiceEnd();
  
@@ -27,7 +29,7 @@ namespace GeoTetra.GTPooling
             if(state == PlayModeStateChange.EnteredPlayMode)
             {
                 Debug.Log($"OnServiceAwake {name}");
-                OnServiceAwake();
+                Initialization = OnServiceAwake();
             }
             else if(state == PlayModeStateChange.ExitingPlayMode)
             {
