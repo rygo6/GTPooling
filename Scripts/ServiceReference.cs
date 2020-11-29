@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
+using GeoTetra.GTCommon.Components;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace GeoTetra.GTPooling
@@ -74,6 +76,9 @@ namespace GeoTetra.GTPooling
         public ServiceObjectReferenceT(string guid) : base(guid) { }
 
         private ServiceObjectType _service;
+        private AsyncOperationHandle<ServiceObjectType> _handle;
+        private SubscribableBehaviour _subscribableBehaviour;
+        private ServiceObject _subscribableServiceObject;
         
         public ServiceObjectType Service
         {
@@ -91,9 +96,57 @@ namespace GeoTetra.GTPooling
         /// <summary>
         /// Loads the reference for future Service calls.
         /// </summary>
-        public async Task Cache()
+        public async Task Cache(SubscribableBehaviour subscribableBehaviour)
         {
-            if (_service == null) await LoadService();
+            if (_service == null)
+            {
+                _subscribableBehaviour = subscribableBehaviour;
+                _subscribableBehaviour.Destroyed += SubscribableBehaviourOnDestroyed;
+                await LoadService();
+            }
+        }
+        
+        /// <summary>
+        /// Loads the reference for future Service calls.
+        /// </summary>
+        public async Task Cache(ServiceObject serviceObject)
+        {
+            if (_service == null)
+            {
+                _subscribableServiceObject = serviceObject;
+                _subscribableServiceObject.Ended += SubscribableServiceObjectOnEnded;
+                await LoadService();
+            }
+        }
+
+        private void SubscribableServiceObjectOnEnded(ServiceObject serviceObject)
+        {
+            _subscribableServiceObject.Ended -= SubscribableServiceObjectOnEnded;
+            _subscribableServiceObject = null;
+            Release();
+        }
+
+        private void SubscribableBehaviourOnDestroyed(SubscribableBehaviour subscribableBehaviour)
+        {
+            _subscribableBehaviour.Destroyed -= SubscribableBehaviourOnDestroyed;
+            _subscribableBehaviour = null;
+            Release();
+        }
+
+        private async void Release()
+        {
+            // In case object load call was sent, immediately followed by release call.
+            await _handle.Task;
+            await _service.Starting;
+            
+            if (OperationHandle.IsValid())
+            {
+                ReleaseAsset();
+            }
+            else
+            {
+                Addressables.Release(_handle);
+            }
         }
 
         private async Task LoadService()
@@ -109,14 +162,17 @@ namespace GeoTetra.GTPooling
                 {
                     Debug.LogWarning("No ServiceObjectReference specified, and could not find a default service by name of type "  + typeof(ServiceObjectType).Name);
                 }
-                _service = await Addressables.LoadAssetAsync<ServiceObjectType>(location.PrimaryKey).Task;
+                
+                _handle = Addressables.LoadAssetAsync<ServiceObjectType>(location.PrimaryKey);
+                _service = await _handle.Task;
             }
             else
             {
-                _service = await LoadAssetAsync<ServiceObjectType>().Task;
+                _handle = LoadAssetAsync<ServiceObjectType>();
+                _service = await _handle.Task;
             }
 
-            await _service.Initialization;
+            await _service.Starting;
         }
     }
 }

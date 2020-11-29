@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using GeoTetra.GTCommon.Components;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
 namespace GeoTetra.GTPooling
 {
-    public class ServiceBehaviour : MonoBehaviour
+    public class ServiceBehaviour : SubscribableBehaviour
     {
         public bool IsLoaded { get; protected set; }
 

@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using GeoTetra.GTCommon.Components;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -8,10 +10,21 @@ namespace GeoTetra.GTPooling
 {
     public abstract class ServiceObject : ScriptableObject
     {
-        public Task Initialization { get; private set; }
+        public Task Starting { get; private set; }
         
-        protected abstract Task OnServiceAwake();
-        protected abstract void OnServiceEnd();
+        public event Action<ServiceObject> Started;
+        
+        public event Action<ServiceObject> Ended;
+
+        protected virtual async Task OnServiceStart()
+        {
+            Started?.Invoke(this);
+        }
+
+        protected virtual void OnServiceEnd()
+        {
+            Ended?.Invoke(this);
+        }
  
 #if UNITY_EDITOR
         protected void OnEnable()
@@ -29,7 +42,7 @@ namespace GeoTetra.GTPooling
             if(state == PlayModeStateChange.EnteredPlayMode)
             {
                 Debug.Log($"OnServiceAwake {name}");
-                Initialization = OnServiceAwake();
+                Starting = OnServiceStart();
             }
             else if(state == PlayModeStateChange.ExitingPlayMode)
             {
