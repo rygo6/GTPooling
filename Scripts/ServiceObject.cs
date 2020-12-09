@@ -18,13 +18,24 @@ namespace GeoTetra.GTPooling
 
         protected virtual Task OnServiceStart()
         {
+            Debug.Log($"OnServiceStart {name}");
             Started?.Invoke(this);
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Override to implement service cleanup. Settings of service will
+        /// not clear between 'Plays' in Unity when Addressable is set to 'Use Asset Database'.
+        /// </summary>
         protected virtual void OnServiceEnd()
         {
+            Debug.Log($"OnServiceEnd {name}");
             Ended?.Invoke(this);
+        }
+
+        internal void StartService()
+        {
+            if (Starting == null) Starting = OnServiceStart();
         }
  
 #if UNITY_EDITOR
@@ -40,21 +51,23 @@ namespace GeoTetra.GTPooling
  
         void OnPlayStateChange(PlayModeStateChange state)
         {
-            if(state == PlayModeStateChange.EnteredPlayMode)
+            // To play mode
+            if(state == PlayModeStateChange.ExitingEditMode)
             {
-                Debug.Log($"OnServiceAwake {name}");
-                Starting = OnServiceStart();
+                Starting = null;
+                // Debug.Log($"OnServiceAwake {name}");
+                // Starting = OnServiceStart();
             }
-            else if(state == PlayModeStateChange.ExitingPlayMode)
+            // To editor mode
+            else if(state == PlayModeStateChange.ExitingPlayMode && Starting != null)
             {
-                Debug.Log($"OnServiceEnd {name}");
                 OnServiceEnd();
             }
         }
 #else
         protected void OnEnable()
         {
-            OnServiceAwake();
+            // OnServiceAwake();
         }
  
         protected void OnDisable()
