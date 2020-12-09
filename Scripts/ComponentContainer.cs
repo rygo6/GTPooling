@@ -23,7 +23,7 @@ namespace GeoTetra.GTPooling
         public async Task CacheAndRegister(SubscribableBehaviour subscribableBehaviour)
         {
             await Cache(subscribableBehaviour);
-            Service.RegisterComponent(subscribableBehaviour);
+            Ref.RegisterComponent(subscribableBehaviour);
         }
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace GeoTetra.GTPooling
         /// <returns></returns>
         public async Task<T> AwaitRegister<T>() where T : SubscribableBehaviour
         {
-            T result = Service.Get<T>();
+            T result = Ref.Get<T>();
             if (result != null)
             {
                 return result;
@@ -44,7 +44,7 @@ namespace GeoTetra.GTPooling
             if (_awaitingRegister == null)
             {
                 _awaitingRegister = new Dictionary<Type, object>();
-                Service.ComponentRegistered += CheckComponentRegistered;
+                Ref.ComponentRegistered += CheckComponentRegistered;
             }
             
             TaskCompletionSource<T> tcs = new TaskCompletionSource<T>();

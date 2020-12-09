@@ -80,7 +80,10 @@ namespace GeoTetra.GTPooling
         private SubscribableBehaviour _subscribableBehaviour;
         private ServiceObject _subscribableServiceObject;
         
-        public ServiceObjectType Service
+        public static implicit operator ServiceObjectType(ServiceObjectReferenceT<ServiceObjectType> referenceT) => referenceT.Ref;
+        public static implicit operator bool(ServiceObjectReferenceT<ServiceObjectType> referenceT) => referenceT.Ref != null;
+        
+        public ServiceObjectType Ref
         {
             get
             {
