@@ -16,9 +16,10 @@ namespace GeoTetra.GTPooling
         
         public event Action<ServiceObject> Ended;
 
-        protected virtual async Task OnServiceStart()
+        protected virtual Task OnServiceStart()
         {
             Started?.Invoke(this);
+            return Task.CompletedTask;
         }
 
         protected virtual void OnServiceEnd()
