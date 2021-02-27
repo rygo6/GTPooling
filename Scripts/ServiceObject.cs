@@ -55,6 +55,7 @@ namespace GeoTetra.GTPooling
             if(state == PlayModeStateChange.ExitingEditMode)
             {
                 Starting = null;
+                // Called from service reference
                 // Debug.Log($"OnServiceAwake {name}");
                 // Starting = OnServiceStart();
             }
@@ -67,7 +68,8 @@ namespace GeoTetra.GTPooling
 #else
         protected void OnEnable()
         {
-            // OnServiceAwake();
+            // Called from service reference
+            // OnServiceStart();
         }
  
         protected void OnDisable()
