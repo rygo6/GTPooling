@@ -107,9 +107,16 @@ namespace GeoTetra.GTPooling
         public void RegisterComponent(SubscribableBehaviour behaviour)
         {
             Debug.Log($"Registering {behaviour} in ComponentContainer {this}.");
-            _objectDictionary.Add(behaviour.GetType(), behaviour);
-            behaviour.Destroyed += UnregisterComponent;
-            ComponentRegistered?.Invoke(behaviour);
+            if (!_objectDictionary.ContainsKey(behaviour.GetType()))
+            {
+                _objectDictionary.Add(behaviour.GetType(), behaviour);
+                behaviour.Destroyed += UnregisterComponent;
+                ComponentRegistered?.Invoke(behaviour);
+            }
+            else
+            {
+                Debug.LogWarning($"Already registered {behaviour} in ComponentContainer {this}.");
+            }
         }
 
         public void UnregisterComponent(SubscribableBehaviour unregisterBehaviour)
